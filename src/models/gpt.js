@@ -1,51 +1,40 @@
-import OpenAI from "openai";
+import Bytez from "bytez.js";
 import { getKey } from "../utils/keys.js";
 
-export const TTSConfig = {
-    provider: "openai",
-    model: "gpt-4o-mini-tts",
-    voice: "alloy"
-};
+export const TTSConfig = null;
 
 export class GPT {
 
     static prefix = "openai";
 
-    constructor(model = "gpt-4.1-nano", url = null, params = {}) {
+    constructor(model = "openai/gpt-5", url = null, params = {}) {
 
         const key = getKey("OPENAI_API_KEY");
 
-        this.model = model || "gpt-4.1-nano";
-        this.params = params || {};
+        this.model = model;
+        this.params = params;
 
-        this.openai = new OpenAI({
-            apiKey: key,
-
-            // Bytez endpoint
-            baseURL: "https://api.bytez.com/v1"
-        });
-
+        this.sdk = new Bytez(key);
     }
 
     async sendRequest(messages) {
 
         try {
 
-            const completion = await this.openai.chat.completions.create({
+            const model = this.sdk.model(this.model);
 
-                model: this.model,
-                messages: messages,
-                temperature: this.params.temperature ?? 0.7,
-                max_tokens: this.params.max_tokens ?? 512
+            const { error, output } = await model.run(messages);
 
-            });
+            if (error) {
+                console.error(error);
+                return "My brain disconnected, try again.";
+            }
 
-            return completion.choices?.[0]?.message?.content || "";
+            return output?.content || output?.text || "";
 
         } catch (err) {
 
             console.error("GPT request error:", err);
-
             return "My brain disconnected, try again.";
 
         }
