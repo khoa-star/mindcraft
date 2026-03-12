@@ -5,81 +5,62 @@ export const TTSConfig = null
 
 export class GPT {
 
-    static prefix = "openai"
+static prefix = "openai"
 
-    constructor(model = "openai/gpt-4.1-nano", url = null, params = {}) {
+constructor(model="openai/gpt-4.1-nano"){
 
-        const key = getKey("OPENAI_API_KEY")
+const key = getKey("OPENAI_API_KEY")
 
-        this.model = model
-        this.params = params
+this.sdk = new Bytez(key)
 
-        this.sdk = new Bytez(key)
+this.model = model
 
-    }
+}
 
-    async sendRequest(messages) {
+async sendRequest(messages){
 
-        try {
+try{
 
-            const model = this.sdk.model(this.model)
+const model = this.sdk.model(this.model)
 
-            const res = await model.run(messages)
+const res = await model.run(messages)
 
-            if (!res) {
+if(!res){
+console.log("Bytez returned empty response")
+return "My brain disconnected, try again."
+}
 
-                console.error("Bytez returned empty response")
+if(res.error){
+console.log("Bytez error:",res.error)
+return "My brain disconnected, try again."
+}
 
-                return "My brain disconnected, try again."
+if(!res.output){
+return "My brain disconnected, try again."
+}
 
-            }
+if(typeof res.output === "string"){
+return res.output
+}
 
-            if (res.error) {
+if(res.output.content){
+return res.output.content
+}
 
-                console.error("Bytez API error:", res.error)
+if(res.output.text){
+return res.output.text
+}
 
-                return "My brain disconnected, try again."
+return JSON.stringify(res.output)
 
-            }
+}catch(err){
 
-            const output = res.output
+console.log("GPT request error:",err)
 
-            if (!output) {
+return "My brain disconnected, try again."
 
-                return "My brain disconnected, try again."
+}
 
-            }
-
-            if (typeof output === "string") {
-
-                return output
-
-            }
-
-            if (output.content) {
-
-                return output.content
-
-            }
-
-            if (output.text) {
-
-                return output.text
-
-            }
-
-            return JSON.stringify(output)
-
-        }
-
-        catch (err) {
-
-            console.error("GPT request error:", err)
-
-            return "My brain disconnected, try again."
-
-        }
-
-    }
+}
 
 }
