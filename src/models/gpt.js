@@ -23,7 +23,24 @@ try{
 
 const model = this.sdk.model(this.model)
 
-const res = await model.run(messages)
+let res
+
+// retry 2 lần nếu API lỗi
+for(let i=0;i<2;i++){
+
+try{
+
+res = await model.run(messages)
+
+if(res) break
+
+}catch(e){
+
+console.log("Bytez network error:",e)
+
+}
+
+}
 
 if(!res){
 console.log("Bytez returned empty response")
@@ -51,6 +68,7 @@ if(res.output.text){
 return res.output.text
 }
 
+// fallback nếu format lạ
 return JSON.stringify(res.output)
 
 }catch(err){
