@@ -1,4 +1,3 @@
-import Bytez from "bytez.js"
 import { getKey } from "../utils/keys.js"
 
 export const TTSConfig = null
@@ -9,13 +8,8 @@ static prefix = "openai"
 
 constructor(model="openai/gpt-4.1-nano"){
 
-const key = getKey("OPENAI_API_KEY")
-
-this.sdk = new Bytez(key,{
-baseURL:"https://api.bytez.com/v1"
-})
-
 this.model = model
+this.key = getKey("OPENAI_API_KEY")
 
 }
 
@@ -23,53 +17,36 @@ async sendRequest(messages){
 
 try{
 
-const model = this.sdk.model(this.model)
+const res = await fetch("https://api.bytez.com/v1/chat/completions",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":`Bearer ${this.key}`
+},
+body:JSON.stringify({
+model:this.model,
+messages:messages
+})
+})
 
-let res
+if(!res.ok){
 
-try{
-
-res = await model.run(messages)
-
-}catch(e){
-
-console.log("Bytez request failed:",e)
-
+console.log("Bytez HTTP error:",res.status)
 return "My brain disconnected, try again."
 
 }
 
-if(!res || typeof res !== "object"){
+const data = await res.json()
+
+if(!data || !data.choices){
 return "My brain disconnected, try again."
 }
 
-if(res.error){
-console.log("Bytez error:",res.error)
-return "My brain disconnected, try again."
-}
-
-if(!res.output){
-return "My brain disconnected, try again."
-}
-
-if(typeof res.output === "string"){
-return res.output
-}
-
-if(res.output.content){
-return res.output.content
-}
-
-if(res.output.text){
-return res.output.text
-}
-
-return JSON.stringify(res.output)
+return data.choices[0].message.content
 
 }catch(err){
 
 console.log("GPT request error:",err)
-
 return "My brain disconnected, try again."
 
 }
