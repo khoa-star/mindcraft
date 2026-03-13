@@ -11,7 +11,9 @@ constructor(model="openai/gpt-4.1-nano"){
 
 const key = getKey("OPENAI_API_KEY")
 
-this.sdk = new Bytez(key)
+this.sdk = new Bytez(key,{
+baseURL:"https://api.bytez.com/v1"
+})
 
 this.model = model
 
@@ -25,25 +27,19 @@ const model = this.sdk.model(this.model)
 
 let res
 
-// retry 2 lần nếu API lỗi
-for(let i=0;i<2;i++){
-
 try{
 
 res = await model.run(messages)
 
-if(res) break
-
 }catch(e){
 
-console.log("Bytez network error:",e)
+console.log("Bytez request failed:",e)
+
+return "My brain disconnected, try again."
 
 }
 
-}
-
-if(!res){
-console.log("Bytez returned empty response")
+if(!res || typeof res !== "object"){
 return "My brain disconnected, try again."
 }
 
@@ -68,7 +64,6 @@ if(res.output.text){
 return res.output.text
 }
 
-// fallback nếu format lạ
 return JSON.stringify(res.output)
 
 }catch(err){
