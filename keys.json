@@ -1,3 +1,1 @@
-{
-  "OPENAI_API_KEY": "2fbdaaa9f71833784f774cfba57629aa"
-}
+printf '{\n "OPENAI_API_KEY":"2fbdaaa9f71833784f774cfba57629aa"\n}\n' > keys.json
